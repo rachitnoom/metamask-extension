@@ -6,6 +6,8 @@ import { compose } from 'recompose'
 import actions from '../../store/actions'
 import log from 'loglevel'
 import { getMetaMaskAccounts, getNetworkIdentifier } from '../../selectors/selectors'
+import { matches } from '../../helpers/utils/util'
+import openWyre from '../../../lib/wyre'
 
 // init
 import FirstTimeFlow from '../first-time-flow'
@@ -66,6 +68,7 @@ import {
   CONFIRM_TRANSACTION_ROUTE,
   INITIALIZE_ROUTE,
   INITIALIZE_UNLOCK_ROUTE,
+  DEPOSIT_ROUTE,
 } from '../../helpers/constants/routes'
 
 // enums
@@ -97,6 +100,38 @@ class Routes extends Component {
     })
   }
 
+  componentDidMount () {
+    const {
+      location,
+      modal,
+      showDepositModal,
+      selectedAddress,
+      stopWaitingForWyreSigRequest,
+      waitForWyreSigRequest,
+    } = this.props
+
+    if (location.pathname === DEPOSIT_ROUTE && (!modal || !modal.open)) {
+      showDepositModal()
+      openWyre(selectedAddress, waitForWyreSigRequest, stopWaitingForWyreSigRequest, stopWaitingForWyreSigRequest)
+    }
+  }
+
+  componentDidUpdate (prevProps) {
+    const {
+      waitingForWyreSigRequest,
+      unapprovedPersonalMsgs,
+      stopWaitingForWyreSigRequest,
+      showSigRequestModalForId,
+    } = this.props
+
+    const wyreMessage = Object.values(unapprovedPersonalMsgs).find(msg => matches(msg, 'msgParams.origin', /wyre/))
+
+    if (waitingForWyreSigRequest && wyreMessage) {
+      showSigRequestModalForId(wyreMessage.id)
+      stopWaitingForWyreSigRequest()
+    }
+  }
+
   renderRoutes () {
     return (
       <Switch>
@@ -113,6 +148,7 @@ class Routes extends Component {
         <Authenticated path={CONFIRM_ADD_TOKEN_ROUTE} component={ConfirmAddTokenPage} exact />
         <Authenticated path={CONFIRM_ADD_SUGGESTED_TOKEN_ROUTE} component={ConfirmAddSuggestedTokenPage} exact />
         <Authenticated path={NEW_ACCOUNT_ROUTE} component={CreateAccountPage} />
+        <Authenticated path={DEPOSIT_ROUTE} component={Home} exact />
         <Authenticated path={DEFAULT_ROUTE} component={Home} exact />
       </Switch>
     )
@@ -336,6 +372,13 @@ Routes.propTypes = {
   t: PropTypes.func,
   providerId: PropTypes.string,
   providerRequests: PropTypes.array,
+  waitingForWyreSigRequest: PropTypes.bool,
+  unapprovedPersonalMsgs: PropTypes.object,
+  stopWaitingForWyreSigRequest: PropTypes.func,
+  showSigRequestModalForId: PropTypes.func,
+  showDepositModal: PropTypes.func,
+  waitForWyreSigRequest: PropTypes.func,
+  modal: PropTypes.object,
 }
 
 function mapStateToProps (state) {
@@ -347,6 +390,8 @@ function mapStateToProps (state) {
     alertMessage,
     isLoading,
     loadingMessage,
+    waitingForWyreSigRequest,
+    modal,
   } = appState
 
   const accounts = getMetaMaskAccounts(state)
@@ -363,6 +408,7 @@ function mapStateToProps (state) {
     unapprovedPersonalMsgCount,
     unapprovedTypedMessagesCount,
     providerRequests,
+    unapprovedPersonalMsgs,
   } = metamask
   const selected = address || Object.keys(accounts)[0]
 
@@ -389,6 +435,7 @@ function mapStateToProps (state) {
     unapprovedMsgCount,
     unapprovedPersonalMsgCount,
     unapprovedTypedMessagesCount,
+    unapprovedPersonalMsgs,
     menuOpen: state.appState.menuOpen,
     network: state.metamask.network,
     provider: state.metamask.provider,
@@ -407,6 +454,8 @@ function mapStateToProps (state) {
     selected,
     keyrings,
     providerRequests,
+    waitingForWyreSigRequest,
+    modal,
   }
 }
 
@@ -419,6 +468,10 @@ function mapDispatchToProps (dispatch, ownProps) {
     setCurrentCurrencyToUSD: () => dispatch(actions.setCurrentCurrency('usd')),
     toggleAccountMenu: () => dispatch(actions.toggleAccountMenu()),
     setMouseUserState: (isMouseUser) => dispatch(actions.setMouseUserState(isMouseUser)),
+    stopWaitingForWyreSigRequest: () => dispatch(actions.stopWaitingForWyreSigRequest()),
+    showSigRequestModalForId: id => dispatch(actions.showModal({ name: 'SIGNATURE_REQUEST', id })),
+    showDepositModal: () => dispatch(actions.showModal({ name: 'DEPOSIT_ETHER' })),
+    waitForWyreSigRequest: () => dispatch(actions.waitForWyreSigRequest()),
   }
 }
 

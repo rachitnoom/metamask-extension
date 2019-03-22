@@ -349,6 +349,11 @@ var actions = {
 
   setFirstTimeFlowType,
   SET_FIRST_TIME_FLOW_TYPE: 'SET_FIRST_TIME_FLOW_TYPE',
+
+  waitForWyreSigRequest,
+  WAIT_FOR_WYRE_SIG_REQUEST: 'WAIT_FOR_WYRE_SIG_REQUEST',
+  stopWaitingForWyreSigRequest,
+  STOP_WAITING_FOR_WYRE_SIG_REQUEST: 'STOP_WAITING_FOR_WYRE_SIG_REQUEST',
 }
 
 module.exports = actions
@@ -2710,5 +2715,17 @@ function setFirstTimeFlowType (type) {
       type: actions.SET_FIRST_TIME_FLOW_TYPE,
       value: type,
     })
+  }
+}
+
+function waitForWyreSigRequest () {
+  return {
+    type: actions.WAIT_FOR_WYRE_SIG_REQUEST,
+  }
+}
+
+function stopWaitingForWyreSigRequest () {
+  return {
+    type: actions.STOP_WAITING_FOR_WYRE_SIG_REQUEST,
   }
 }

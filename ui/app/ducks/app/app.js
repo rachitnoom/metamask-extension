@@ -77,6 +77,7 @@ function reduceApp (state, action) {
       ledger: `m/44'/60'/0'/0/0`,
     },
     lastSelectedProvider: null,
+    waitingForWyreSigRequest: false,
   }, state.appState)
 
   switch (action.type) {
@@ -749,6 +750,16 @@ function reduceApp (state, action) {
       }
       return extend(appState, {
         lastSelectedProvider: action.value,
+      })
+
+    case actions.WAIT_FOR_WYRE_SIG_REQUEST:
+      return extend(appState, {
+        waitingForWyreSigRequest: true,
+      })
+
+    case actions.STOP_WAITING_FOR_WYRE_SIG_REQUEST:
+      return extend(appState, {
+        waitingForWyreSigRequest: false,
       })
 
     default:

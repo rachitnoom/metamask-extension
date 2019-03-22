@@ -62,7 +62,7 @@ class ProviderApprovalController {
       this.approveProviderRequest(tabID)
       return
     }
-    this.openPopup && this.openPopup()
+    this.openPopup && this.openPopup({ isProviderApproval: true })
   }
 
   /**

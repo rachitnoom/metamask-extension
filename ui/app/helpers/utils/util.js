@@ -61,6 +61,7 @@ module.exports = {
   checksumAddress,
   addressSlicer,
   isEthNetwork,
+  matches,
 }
 
 function isEthNetwork (netId) {
@@ -323,4 +324,27 @@ function addressSlicer (address = '') {
   }
 
   return `${address.slice(0, 6)}...${address.slice(-4)}`
+}
+
+/**
+ * Safely attempts to match a string nested at a path with a regular expression
+ *
+ * @param {Object} [obj] - the object containing the method
+ * @param {String} [pathToString] - the period delimited path at which the string is nested in the object
+ * @param {RegExp} [regex] - the regex to match against the string
+ * @returns {Any} - returns the result of match with the regex on the string, or undefined if the value at the path is not a string
+ *
+ */
+function matches (obj, pathToString, regex) {
+  const propsOnPath = pathToString.split('.')
+  const str = propsOnPath.reduce((currentObj, nextProp, index) => {
+    if (index === propsOnPath.length + 1) {
+      return currentObj
+    }
+    return currentObj[nextProp] !== undefined && currentObj[nextProp] !== null
+      ? currentObj[nextProp]
+      : false
+  }, obj)
+
+  return typeof str === 'string' ? str.match(regex) : undefined
 }
